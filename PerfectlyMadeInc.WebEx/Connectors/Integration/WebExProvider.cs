@@ -24,6 +24,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
 
         // private fields
         private readonly WebExSettingInfo settings;
+        private readonly string accessToken;
 
         // private fields
         private readonly XNamespace xsi = "http://www.w3.org/2001/XMLSchema-instance";
@@ -38,6 +39,11 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
         public WebExProvider(WebExSettingInfo settings)
         {
             this.settings = settings;
+        }
+
+        public WebExProvider(string accessToken)
+        {
+            this.accessToken = accessToken;
         }
 
         // constructor
@@ -76,7 +82,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
 
         // gets person by id
         public async Task<WebExPersonExtended> GetPersonById(long sessionId, long attendeeId)
-        {           
+        {
             var persons = await GetPersonsInSession(sessionId);
             var result = persons.FirstOrDefault(x => x.PersonInfo.AttendeeId == attendeeId);
             return result;
@@ -97,7 +103,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
             return result;
         }
 
-        
+
         // gets list of events by program id
         public async Task<List<WebExEventInfo>> GetsEventsByProgramId(long programId)
         {
@@ -114,13 +120,13 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
                 result = GetListOfEvents(xmlResponse);
 
             }
-            catch(WebExException)
+            catch (WebExException)
             {
                 if (status.ErrorMessage == "Sorry, no record found")
                     return result;
                 else
                     throw;
-            }            
+            }
             return result;
         }
 
@@ -128,7 +134,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
         {
             var _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {WebexUrls.Access_Token}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this.accessToken}");
             HttpResponseMessage response = await _httpClient.GetAsync(WebexUrls.BaseUrl + WebexUrls.ListMeeting).ConfigureAwait(false);
             string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var webinars = JsonConvert.DeserializeObject<WebexWebinarInfo>(responseBody);
@@ -139,7 +145,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
         {
             var _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {WebexUrls.Access_Token}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this.accessToken}");
             HttpResponseMessage response = await _httpClient.GetAsync(WebexUrls.BaseUrl + WebexUrls.ListMeeting).ConfigureAwait(false);
             string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var webinars = JsonConvert.DeserializeObject<WebexWebinarInfo>(responseBody);
@@ -153,7 +159,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
             var status = new ResponseStatus();
             try
             {
-                CheckIsEnabled();              
+                CheckIsEnabled();
                 var body = GetBodyForListOfPrograms(programId);
                 var response = await GetResponse(body);
                 var xmlResponse = ConvertResponseToXml(response);
@@ -201,7 +207,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
             CheckResponseStatus(status, xmlResponse);
             return false;
         }
-       
+
         #endregion
 
 
@@ -232,7 +238,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
             var result = new XElement("body",
                         new XElement("bodyContent",
                             new XAttribute(xsi + "type", "java:com.webex.service.binding.attendee.LstMeetingAttendee"),
-                            new XElement("listControl", 
+                            new XElement("listControl",
                                 new XElement("maximumNum", 500)),
                             new XElement("sessionKey", sessionId
                             )));
@@ -413,7 +419,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
             var result = new WebExProgramInfo();
             result.ProgramId = Convert.ToInt64(GetElemValue(program, eve + "programID"));
             result.Name = GetElemValue(program, eve + "programName");
-            result.ProgramUrl = GetElemValue(program, eve + "programURL");            
+            result.ProgramUrl = GetElemValue(program, eve + "programURL");
             return result;
         }
 
@@ -548,7 +554,7 @@ namespace PerfectlyMadeInc.WebEx.Connectors.Integration
                 throw new InvalidOperationException("WebEx integration is not enabled.");
         }
 
-      
+
         #endregion
 
 

@@ -14,5 +14,6 @@ namespace PerfectlyMadeInc.WebEx.Connectors.AppLogic
         // get webEx service by account id
         IIntegrationService CreateIntegrationService(long accountId);
 
+        IWebExProvider GetWebexAccessToken(long accountId);
     }
 }
